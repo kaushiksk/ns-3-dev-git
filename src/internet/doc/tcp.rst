@@ -761,6 +761,45 @@ phase or not
 
 More information (paper): http://cs.northwestern.edu/~akuzma/rice/doc/TCP-LP.pdf
 
+Compound
+^^^^^^^^
+TCP Compound is a synergy of delay-based and loss-based congestion control
+algorithms. It adds a scalable delay-based component into the standard TCP
+Reno congestion avoidance algorithm (i.e., the loss-based component).This new
+delay-based component can rapidly increase sending rate when network path is under
+utilized, but gracefully retreat in a busy network when bottleneck queue is built.
+The sending window win is given by:
+
+.. math:: win = cwnd + dwnd
+
+Where cwnd is the loss-based component and dwnd is the delay-based component. cwnd
+is incremented as according to Reno congestion avoidance algorithm. For every ACK
+recieved:
+
+.. math:: cwnd = cwnd + 1/(cwnd+dwnd)
+
+The delay-based component dwnd is calculated using the diff value provided by the
+Vegas congestion control algorithm.
+
+.. math::
+
+   actual &= \frac{win}{RTT}
+   expected &= \frac{win}{BaseRTT}
+   diff &= expected - actual
+
+dwnd is now calculated for every ACK recieved as:
+
+.. math::
+
+   dwnd = dwnd + (alpha * (win^k - 1)), if diff < gamma
+   dwnd = dwnd - eta * diff           , if diff >= gamma
+   dwnd = win * (1 - beta) - cwnd/2   , if loss is detected
+
+We used the values provided by the RFC draft for alpha, beta, gamma, and eta. They can
+however be modified using the Attribute system.
+
+More information at: https://www.microsoft.com/en-us/research/publication/a-compound-tcp-approach-for-high-speed-and-long-distance-networks/
+
 Support for Explicit Congestion Notification (ECN)
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
